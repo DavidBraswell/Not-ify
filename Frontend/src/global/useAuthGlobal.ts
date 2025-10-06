@@ -1,0 +1,31 @@
+import { axiosInstance } from "@/lib/axios"
+import { create } from "zustand"
+
+interface AuthState {
+    isAdmin: boolean
+    isLoading: boolean
+    error: string | null
+
+    checkAdminStatus: () => Promise<void>
+    reset: () => void
+}
+
+export const useAuthGlobal = create<AuthState>((set) => ({
+    isAdmin: false,
+    isLoading: false,
+    error: null,
+    checkAdminStatus: async () => {
+        set({ isLoading: true, error: null });
+        try {
+            const res = await axiosInstance.get("/admin/check")
+            set({ isAdmin: res.data.admin})
+        } catch (error: any) {
+            set ({ isAdmin: false })
+            set({ error: error.response.data.message })
+        } finally {
+            set({ isLoading: false })
+        }
+
+    },
+reset: () => { set({ isAdmin: false, isLoading: false, error: null })}
+}))
